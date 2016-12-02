@@ -72,13 +72,17 @@ namespace gterm {
       if (!command.contains("cd", Qt::CaseSensitive)) {
 	if (command.contains("clear", Qt::CaseSensitive)) {
 	  m_output->clear();
+	} else if (command.contains("history", Qt::CaseSensitive)) {
+	  m_output->append(m_history.join("\n") + "\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+	} else if (command.contains("exit", Qt::CaseSensitive)) {
+	    this->close();
 	} else {
 	  m_output->append(exec(command.toStdString().c_str())
 			   + "\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
 	}
       } else {
 	int code = chdir(command.mid(3).toStdString().c_str());
-	m_output->append("PWD now is " + command.mid(3)
+	m_output->append("PWD now is " + exec("pwd")
 			 + " (Return code was :" + QString::number(code)
 			 + ")\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
 	resetPrompt();

@@ -109,7 +109,7 @@ namespace gterm {
 
 	  if (!candidates.contains("\n")) { //just one element
 	    std::cout << "Here\n";
-	    m_command_line->setText(text.left(text.lastIndexOf(" ")) + " " + candidates);
+	    m_command_line->setText(text.left(text.lastIndexOf(" ") +1) + candidates);
 	    moveCursor();
 	  }
 	}

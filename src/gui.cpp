@@ -19,7 +19,7 @@ namespace gterm {
     m_output->setStyleSheet("border: 2px solid black;");
     m_output->setAlignment(Qt::AlignLeft);
     m_output->clearFocus();
-    m_pwd = "[" + QString::fromStdString(exec("pwd")).remove("\n") + "]" + m_token;
+    m_pwd = "[" + exec("pwd").remove("\n") + "]" + m_token;
     m_command_line = new QTextEdit(m_pwd);
     moveCursor();
     connect(m_command_line, SIGNAL(textChanged()), this, SLOT(textChangedSlot()));
@@ -67,7 +67,7 @@ namespace gterm {
       m_history << command;
       m_history_index = m_history.size() -1;
       if (!command.contains("cd", Qt::CaseSensitive)) {
-	  m_output->append(QString::fromStdString(exec(command.toStdString().c_str()))
+	  m_output->append(exec(command.toStdString().c_str())
 			   + "\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
       } else {
 	int code = chdir(command.mid(3).toStdString().c_str());
@@ -80,7 +80,7 @@ namespace gterm {
       resetPrompt();
     }
   }
-  std::string GTerm::exec(const char* cmd) {
+  QString GTerm::exec(const char* cmd) {
     char command[200];
     strcpy(command,cmd);
     strcat(command," 2>&1");
@@ -93,11 +93,11 @@ namespace gterm {
 	result += buffer;
     }
     pclose(pipe);
-    return result;
+    return QString::fromStdString(result);
   }
 
   void GTerm::resetPrompt() {
-    m_pwd = "[" + QString::fromStdString(exec("pwd")).remove("\n") + "]" + m_token;    
+    m_pwd = "[" + exec("pwd").remove("\n") + "]" + m_token;    
     m_command_line->setText(m_pwd);
     moveCursor();
   }

@@ -22,7 +22,7 @@ namespace gterm {
   private slots:
     void textChangedSlot();
   private:
-    std::string exec(const char* cmd);
+    QString exec(const char* cmd);
     void moveCursor();
     void resetPrompt();
   private:

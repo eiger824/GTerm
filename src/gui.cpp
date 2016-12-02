@@ -101,14 +101,14 @@ namespace gterm {
       //do something
       if (text.at(text.size()-1) != 32 &&
 	  text.at(text.size()-1) != '>') { //if there is actually some character
-	QString candidates = getTabCandidates(text.mid(text.lastIndexOf(" ")+1), exec("ls"));
+	QString command = "ls `dirname " + text.mid(text.lastIndexOf(" ")+1) + "`";
+	QString candidates = getTabCandidates(text.mid(text.lastIndexOf(" ")+2), exec(command.toStdString().c_str()));
 	if (!candidates.isEmpty()) {
 	  std::cout << "Got the following candidates: ["
 		    << candidates.toStdString() << "]\n";
 	  m_output->append(candidates + m_separator);
 
 	  if (!candidates.contains("\n")) { //just one element
-	    std::cout << "Here\n";
 	    m_command_line->setText(text.left(text.lastIndexOf(" ") +1) + candidates);
 	    moveCursor();
 	  }
@@ -142,6 +142,7 @@ namespace gterm {
 
   QString GTerm::getTabCandidates(const QString s, QString result) {
     QStringList candidates = result.split("\n");
+    std::cout << "<<<<<<<<<<<<<<<<< size: " << candidates.size() << std::endl;
     QStringList final;
     unsigned cnt=0;
     for (unsigned i=0; i<candidates.size(); ++i) {	

@@ -134,7 +134,8 @@ namespace gterm {
   }
 
   void GTerm::resetPrompt() {
-    m_pwd = "[" + exec("pwd").remove("\n") + "]" + m_token;    
+    m_pwd = exec("whoami").remove("\n") + "@" + exec("hostname").remove("\n")
+      + "[" + exec("pwd").remove("\n") + "]" + m_token;    
     m_command_line->setText(m_pwd);
     moveCursor();
   }

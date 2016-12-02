@@ -40,7 +40,6 @@ namespace gterm {
     m_command_line->setTextCursor(tmp);
   }
   void GTerm::keyPressEvent(QKeyEvent* event) {
-    std::cout << event->key() << std::endl;
     if (event->key() == 70 && m_ctrl) { //'f', forward
       if (m_history_index < m_history.size()-1 && !m_history.isEmpty()) {
 	++m_history_index;

@@ -10,20 +10,22 @@ ADD_DEFINITIONS(
 )
 
 include_directories(
+	include
+	src
 )
 
 set(HEADERS
-  gui.hpp
+  include/gui.hpp
   )
 
 set(SOURCES
-  gui.cpp
+  src/gui.cpp
   )
 
 qt4_wrap_cpp(HEADERS_MOC ${HEADERS})
 
 add_executable(gterm
-  main.cpp
+  src/main.cpp
   ${SOURCES}
   ${HEADERS_MOC}
   )

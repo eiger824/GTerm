@@ -6,6 +6,7 @@
 namespace gterm {
   GTerm::GTerm(QWidget* parent) : QWidget(parent),
 				  m_token(">>"),
+				  m_separator("\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t"),
 				  m_history_index(0),
 				  m_pwd(""),
 				  m_ctrl(false)
@@ -76,18 +77,19 @@ namespace gterm {
 	if (command.contains("clear", Qt::CaseSensitive)) {
 	  m_output->clear();
 	} else if (command.contains("history", Qt::CaseSensitive)) {
-	  m_output->append(m_history.join("\n") + "\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+	  m_output->append(m_history.join("\n") + m_separator);
 	} else if (command.contains("exit", Qt::CaseSensitive)) {
 	    this->close();
 	} else {
+	  std::cout << exec(command.toStdString().c_str()).toStdString() << std::endl;
 	  m_output->append(exec(command.toStdString().c_str())
-			   + "\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+			   + m_separator);
 	}
       } else {
 	int code = chdir(command.mid(3).toStdString().c_str());
 	m_output->append("PWD now is " + exec("pwd")
 			 + " (Return code was :" + QString::number(code)
-			 + ")\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+			 + m_separator);
 	resetPrompt();
       }
     } else if (text.size() == m_pwd.size()-1) { //the only case when the whole command is gone
@@ -97,6 +99,21 @@ namespace gterm {
       m_command_line->setText(text);
       moveCursor();
       //do something
+      if (text.at(text.size()-1) != 32 &&
+	  text.at(text.size()-1) != '>') { //if there is actually some character
+	QString candidates = getTabCandidates(text.mid(text.lastIndexOf(" ")+1), exec("ls"));
+	if (!candidates.isEmpty()) {
+	  std::cout << "Got the following candidates: ["
+		    << candidates.toStdString() << "]\n";
+	  m_output->append(candidates + m_separator);
+
+	  if (!candidates.contains("\n")) { //just one element
+	    std::cout << "Here\n";
+	    m_command_line->setText(text.left(text.lastIndexOf(" ")) + " " + candidates);
+	    moveCursor();
+	  }
+	}
+      }
     }
   }
   
@@ -120,5 +137,26 @@ namespace gterm {
     m_pwd = "[" + exec("pwd").remove("\n") + "]" + m_token;    
     m_command_line->setText(m_pwd);
     moveCursor();
+  }
+
+  QString GTerm::getTabCandidates(const QString s, QString result) {
+    QStringList candidates = result.split("\n");
+    QStringList final;
+    unsigned cnt=0;
+    for (unsigned i=0; i<candidates.size(); ++i) {	
+      for (unsigned j=0; j<s.size(); ++j) {
+	if (candidates.at(i).at(j) == s.at(j)) {
+	  ++cnt;
+	} else {
+	  break; //go to the next one
+	}
+      }
+      if (cnt==s.size()) {
+	final << candidates.at(i);
+      }
+      cnt = 0;
+    }
+    
+    return final.join("\n");
   }
 }

@@ -25,6 +25,7 @@ namespace gterm {
     QString exec(const char* cmd);
     void moveCursor();
     void resetPrompt();
+    QString getTabCandidates(const QString s, QString result);
   private:
     QTextEdit* m_command_line;
     QVBoxLayout* m_main_layout;
@@ -33,6 +34,7 @@ namespace gterm {
     QStringList m_history;
     unsigned m_history_index;
     QString m_pwd;
+    QString m_separator;
     bool m_ctrl;
   };
 }

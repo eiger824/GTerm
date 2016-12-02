@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include <QTextCursor>
 #include "gui.hpp"
 
@@ -17,10 +18,9 @@ namespace gterm {
     m_output->setFixedHeight(600);
     m_output->setStyleSheet("border: 2px solid black;");
     m_output->setAlignment(Qt::AlignLeft);
-    //m_output->setEnabled(false);
+    m_output->clearFocus();
     m_pwd = "[" + QString::fromStdString(exec("pwd")).remove("\n") + "]" + m_token;
     m_command_line = new QTextEdit(m_pwd);
-    //m_command_line->setFocus();
     moveCursor();
     connect(m_command_line, SIGNAL(textChanged()), this, SLOT(textChangedSlot()));
     m_main_layout->addWidget(m_output);
@@ -60,15 +60,23 @@ namespace gterm {
   
   void GTerm::textChangedSlot() {
     QString text = m_command_line->toPlainText();
-    if (text.at(text.size() - 1) == 10) {
+    if (text.at(text.size() - 1) == 10) { //enter
       QString command = text.mid(text.lastIndexOf(">")+1);
       command.chop(1);
       resetPrompt();
       std::cout << "Command to send: [" << command.toStdString() << "]\n";
       m_history << command;
       m_history_index = m_history.size() -1;
-      m_output->append(QString::fromStdString(exec(command.toStdString().c_str()))
-		       + "\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+      if (!command.contains("cd", Qt::CaseSensitive)) {
+	  m_output->append(QString::fromStdString(exec(command.toStdString().c_str()))
+			   + "\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+      } else {
+	int code = chdir(command.mid(3).toStdString().c_str());
+	m_output->append("PWD now is " + command.mid(3)
+			 + " (Return code was :" + QString::number(code)
+			 + ")\n\t\t@@@@@@@@@@@@@@@@@@@@@@\t\t");
+	resetPrompt();
+      }
     } else if (text.size() == m_pwd.size()-1) { //the only case when the whole command is gone
       resetPrompt();
     }
@@ -90,6 +98,7 @@ namespace gterm {
   }
 
   void GTerm::resetPrompt() {
+    m_pwd = "[" + QString::fromStdString(exec("pwd")).remove("\n") + "]" + m_token;    
     m_command_line->setText(m_pwd);
     moveCursor();
   }

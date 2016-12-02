@@ -28,10 +28,12 @@ namespace gterm {
     setLayout(m_main_layout);
     show();
   }
-				  GTerm::~GTerm() {
-				    delete m_command_line;
-				    delete m_main_layout;
-				  }
+  
+  GTerm::~GTerm() {
+    delete m_command_line;
+    delete m_main_layout;
+  }
+  
   void GTerm::moveCursor() {
     QTextCursor tmp = m_command_line->textCursor();
     tmp.movePosition(QTextCursor::Right,
@@ -39,6 +41,7 @@ namespace gterm {
 		     m_command_line->toPlainText().size());
     m_command_line->setTextCursor(tmp);
   }
+  
   void GTerm::keyPressEvent(QKeyEvent* event) {
     if (event->key() == 70 && m_ctrl) { //'f', forward
       if (m_history_index < m_history.size()-1 && !m_history.isEmpty()) {
@@ -89,8 +92,14 @@ namespace gterm {
       }
     } else if (text.size() == m_pwd.size()-1) { //the only case when the whole command is gone
       resetPrompt();
+    } else if (text.at(text.size() - 1) == 9) {
+      text.chop(1);
+      m_command_line->setText(text);
+      moveCursor();
+      //do something
     }
   }
+  
   QString GTerm::exec(const char* cmd) {
     char command[200];
     strcpy(command,cmd);

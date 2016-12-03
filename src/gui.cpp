@@ -79,22 +79,22 @@ namespace gterm {
 	} else if (command.contains("history", Qt::CaseSensitive)) {
 	  m_output->append(m_history.join("\n") + m_separator);
 	} else if (command.contains("exit", Qt::CaseSensitive)) {
-	    this->close();
+	  this->close();
 	} else {
-	  std::cout << exec(command.toStdString().c_str()).toStdString() << std::endl;
-	  m_output->append(exec(command.toStdString().c_str())
+	  std::cout << exec(command).toStdString() << std::endl;
+	  m_output->append(exec(command)
 			   + m_separator);
 	}
       } else {
 	int code = chdir(command.mid(3).toStdString().c_str());
 	m_output->append("PWD now is " + exec("pwd")
-			 + " (Return code was :" + QString::number(code)
+			 + " (Return code was :" + QString::number(code) + ")"
 			 + m_separator);
 	resetPrompt();
       }
     } else if (text.size() == m_pwd.size()-1) { //the only case when the whole command is gone
       resetPrompt();
-    } else if (text.at(text.size() - 1) == 9) {
+    } else if (text.at(text.size() - 1) == 9) { // tab character
       text.chop(1);
       m_command_line->setText(text);
       moveCursor();
@@ -102,14 +102,17 @@ namespace gterm {
       if (text.at(text.size()-1) != 32 &&
 	  text.at(text.size()-1) != '>') { //if there is actually some character
 	QString command = "ls `dirname " + text.mid(text.lastIndexOf(" ")+1) + "`";
-	QString candidates = getTabCandidates(text.mid(text.lastIndexOf(" ")+2), exec(command.toStdString().c_str()));
+	QString candidates = getTabCandidates(text.mid(text.lastIndexOf(" ")+2), exec(command));
+	std::cout << candidates.toStdString() << std::endl;
 	if (!candidates.isEmpty()) {
 	  std::cout << "Got the following candidates: ["
 		    << candidates.toStdString() << "]\n";
 	  m_output->append(candidates + m_separator);
 
 	  if (!candidates.contains("\n")) { //just one element
-	    m_command_line->setText(text.left(text.lastIndexOf(" ") +1) + candidates);
+	    m_command_line->setText(text.left(text.lastIndexOf(" ") +1) + exec(QString("dirname "
+										       + text.mid(text.lastIndexOf(" ")+1))).remove("\n")
+				    + candidates);
 	    moveCursor();
 	  }
 	}
@@ -117,11 +120,8 @@ namespace gterm {
     }
   }
   
-  QString GTerm::exec(const char* cmd) {
-    char command[200];
-    strcpy(command,cmd);
-    strcat(command," 2>&1"); //to redirect stderr to stdout
-    FILE* pipe = popen(command, "r");
+  QString GTerm::exec(QString cmd/*const char* cmd*/) {
+    FILE* pipe = popen(cmd.append(" 2>&1").toStdString().c_str(), "r");
     if (!pipe) return "ERROR";
     char buffer[128];
     std::string result = "";
@@ -142,7 +142,6 @@ namespace gterm {
 
   QString GTerm::getTabCandidates(const QString s, QString result) {
     QStringList candidates = result.split("\n");
-    std::cout << "<<<<<<<<<<<<<<<<< size: " << candidates.size() << std::endl;
     QStringList final;
     unsigned cnt=0;
     for (unsigned i=0; i<candidates.size(); ++i) {	

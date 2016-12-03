@@ -22,7 +22,7 @@ namespace gterm {
   private slots:
     void textChangedSlot();
   private:
-    QString exec(const char* cmd);
+    QString exec(QString cmd);
     void moveCursor();
     void resetPrompt();
     QString getTabCandidates(const QString s, QString result);
